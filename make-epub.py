@@ -143,6 +143,7 @@ def main(argv=None):
 
   toc = [epub.Link('intro.xhtml', 'Introduction', 'intro')]
   chapters = []
+  included_files = set()
   for sec in order:
     sec = sec.strip()
     if not config.has_section(sec):
@@ -151,12 +152,20 @@ def main(argv=None):
     sec_title = config.get(sec, 'title')
     sec_start = ""
     sec_end = ""
+    skip_explicit_chapters = False
     if (config.has_option(sec, 'chapters')):
       ch_files = config.get(sec, 'chapter-files').split(',')
+      if (config.has_option(sec, 'epub_skip_chapters')):
+        skip_explicit_chapters = config.getboolean(sec, 'epub_skip_chapters')
+        # Skip processing explicit chapters when requested
       for ch_file in ch_files:
+        if skip_explicit_chapters:
+          continue
         ch_file = ch_file.strip()
         filename = join(abspath(args.input), ch_file)
         if (not isfile(filename)):
+          continue
+        if filename in included_files:
           continue
         ch_title, ch_content = extract_chapter(filename)
         ch = epub.EpubHtml(title=ch_title, file_name=ch_file)
@@ -164,6 +173,7 @@ def main(argv=None):
         ch.content = ch_content
         ebook.add_item(ch)
         sec_chapters.append(ch)
+        included_files.add(filename)
     if (config.has_option(sec, 'start')):
       sec_start = config.get(sec, 'start').strip()
     if (config.has_option(sec, 'end')):
@@ -186,12 +196,15 @@ def main(argv=None):
         filename = join(abspath(args.input), ch_file)
         if (not isfile(filename)):
           continue
+        if filename in included_files:
+          continue
         ch_title, ch_content = extract_chapter(filename)
         ch = epub.EpubHtml(title=ch_title.strip(), file_name=ch_file)
         ch.add_item(doc_style)
         ch.content = ch_content
         ebook.add_item(ch)
         sec_chapters.append(ch)
+        included_files.add(filename)
     if (len(sec_chapters) >= 1):
       if sec_title:
        toc.append((epub.Section(sec_title),sec_chapters))

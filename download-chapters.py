@@ -24,7 +24,9 @@ def download_chapter(
   from lxml import html, etree
   from bs4 import BeautifulSoup, UnicodeDammit
   import requests, re
+  #~ import pdb
 
+  #~ pdb.set_trace()
   if (url is None or filename is None):
     return False
   print('Downloading {} from {}'.format(filename, url))
@@ -47,8 +49,13 @@ def download_chapter(
     i.unwrap()
   for i in btree("span", style=re.compile("float: ?right")):
     i.decompose()
+  for i in btree("span", style=re.compile("font-family")):
+    i.unwrap()
   for i in btree("div", class_=re.compile("wpcnt|sharedaddy")):
     i.decompose()
+  for i in btree("p"):
+    if 'style' in i:
+      del i['style']
   if "Previous Chapter" in btree.p.text:
     btree.p.decompose()
   # TODO: remove all empty tags
@@ -63,8 +70,15 @@ def download_chapter(
     ):
       title = doc_title
     else:
+      if (btree.div.u):
+        btree.div.u.unwrap()
+      if btree.div.span:
+        btree.div.span.unwrap()
+      if btree.div.br:
+        btree.div.br.decompose()        
       if (btree.div.b):
         st = tree.new_tag("strong")
+        st.string = btree.div.b.string
         tree.article.div.b.replace_with(st)
       titles = btree.div.strong
       #~ print("titles:{}".format(titles))
@@ -148,12 +162,15 @@ def worker():
     item = q.get()
     if item is None:
       break
-    download_chapter(item[0], item[1], item[2], item[3], item[4])
+    rs = download_chapter(item[0], item[1], item[2], item[3], item[4])
     q.task_done()
+    if rs == False:
+      print("Downloading {} from {} failed.".format(item[1], item[0]))
 
 def main(argv=None):
   from sys import argv as sys_argv
   from os.path import join, abspath, isfile
+  from os import makedirs
   import configparser, argparse
   parser = argparse.ArgumentParser(description='Download Light Novel Chapters')
   parser.add_argument('config', help="specify config file")
@@ -181,6 +198,7 @@ def main(argv=None):
     (args.output == "" or args.output is None)
   ):
     args.output = config.get('DEFAULT', 'chapter-directory')
+  makedirs(abspath(args.output), exist_ok=True)
   global q
   q = queue.Queue()
   threads = []
