@@ -29,7 +29,6 @@ def download_chapter(
   #~ pdb.set_trace()
   if (url is None or filename is None):
     return False
-  print('Downloading {} from {}'.format(filename, url))
 
   page = requests.get(url)
   if page.status_code == 404:
@@ -49,7 +48,7 @@ def download_chapter(
     i.unwrap()
   for i in btree("span", style=re.compile("float: ?right")):
     i.decompose()
-  for i in btree("span", style=re.compile("font-family")):
+  for i in btree("span", style=re.compile("(font-family|color|text-align)")):
     i.unwrap()
   for i in btree("div", class_=re.compile("wpcnt|sharedaddy")):
     i.decompose()
@@ -78,7 +77,10 @@ def download_chapter(
         btree.div.br.decompose()        
       if (btree.div.b):
         st = tree.new_tag("strong")
-        st.string = btree.div.b.string
+        temp_string = ""
+        for x in btree.div.b.stripped_strings:
+          temp_string = temp_string + " {}".format(x)
+        st.string = temp_string
         tree.article.div.b.replace_with(st)
       titles = btree.div.strong
       #~ print("titles:{}".format(titles))
@@ -158,14 +160,20 @@ def download_chapter(
 
 def worker():
   global q
+  #~ import pdb
   while True:
     item = q.get()
+    #~ pdb.set_trace()
     if item is None:
       break
     rs = download_chapter(item[0], item[1], item[2], item[3], item[4])
     q.task_done()
     if rs == False:
-      print("Downloading {} from {} failed.".format(item[1], item[0]))
+      print("ERROR: Downloading {} from {} failed.".
+        format(item[1], item[0])
+      )
+    else:
+      print('Downloaded {} from {}'.format(item[1], item[0]))
 
 def main(argv=None):
   from sys import argv as sys_argv
