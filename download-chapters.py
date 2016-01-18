@@ -13,12 +13,14 @@
 #
 #You should have received a copy of the GNU Lesser General Public License
 #along with wordpress-epub.  If not, see <http://www.gnu.org/licenses/>.
-    
+
+# Requires:
+#   Beautiful Soup 4, Requests, html5lib, PyExecJS, cfscrape, nodejs
 import queue, threading
 
 def download_chapter(
   url=None, filename=None,
-  main_title=None, title_strip=None, title_re=None
+  main_title=None, title_strip=None, title_re=None, scraper=None
 ):
   # Download a given chapter
   from lxml import html, etree
@@ -30,7 +32,10 @@ def download_chapter(
   if (url is None or filename is None):
     return False
 
-  page = requests.get(url)
+  if (scraper is not None):
+    page = scraper.get(url)
+  else:
+    page = requests.get(url)
   if page.status_code == 404:
     return False
   page.encoding="utf-8"
@@ -161,12 +166,16 @@ def download_chapter(
 def worker():
   global q
   #~ import pdb
+  import cfscrape
+  scraper = cfscrape.create_scraper()
   while True:
     item = q.get()
     #~ pdb.set_trace()
     if item is None:
       break
-    rs = download_chapter(item[0], item[1], item[2], item[3], item[4])
+    rs = download_chapter(url=item[0], filename=item[1],
+      main_title=item[2], title_strip=item[3],
+      title_re=item[4], scraper=scraper)
     q.task_done()
     if rs == False:
       print("ERROR: Downloading {} from {} failed.".
