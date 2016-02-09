@@ -44,6 +44,8 @@ def download_chapter(
   # Trim down to just the article content
   title = ""
   btree = tree.article
+  if not btree:
+    return False
   # remove Next/Previous
   for i in btree("a", string=re.compile("(Next|Prev(ious)?|Index)( ?Chapter)?")):
     i.decompose()
@@ -68,26 +70,34 @@ def download_chapter(
   if (main_title is not None and main_title != ""):
     title = main_title
   else:
-    doc_title = btree.find("h1", class_="entry-title").string
+    doc_title = btree.find("h1", class_="entry-title")
+    temp_string = ""
+    if doc_title and isinstance(doc_title, list):
+      doc_title = doc_title[0]
+    if doc_title:
+      for x in doc_title.stripped_strings:
+        temp_string = "{} {}".format(temp_string, x)
+    doc_title = temp_string
     if ("glossary" in doc_title.lower() or
       "index" in doc_title.lower()
     ):
       title = doc_title
     else:
-      if (btree.div.u):
-        btree.div.u.unwrap()
-      if btree.div.span:
-        btree.div.span.unwrap()
-      if btree.div.br:
-        btree.div.br.decompose()        
-      if (btree.div.b):
+      t_div = btree("div", class_="entry-content")[0]
+      if (t_div.u):
+        t_div.u.unwrap()
+      if t_div.span:
+        t_div.span.unwrap()
+      if t_div.br:
+        t_div.br.decompose()
+      if (t_div.b):
         st = tree.new_tag("strong")
         temp_string = ""
-        for x in btree.div.b.stripped_strings:
+        for x in t_div.b.stripped_strings:
           temp_string = temp_string + " {}".format(x)
         st.string = temp_string
         tree.article.div.b.replace_with(st)
-      titles = btree.div.strong
+      titles = t_div.strong
       #~ print("titles:{}".format(titles))
       if (titles):
         if titles.br:
@@ -101,8 +111,8 @@ def download_chapter(
         #~ print("strtitle:{}".format(title))
         if (re.match('^\s+$', title)):
           title = ""
-      if (title == "" and btree.div.h3):
-        title = btree.div.h3.string
+      if (title == "" and t_div.h3):
+        title = t_div.h3.string
         #~ print("h3title:{}".format(title))
       if (title == ""):
         title = doc_title
@@ -129,6 +139,9 @@ def download_chapter(
       #~ print("re:'{}' title:'{}'".format(title_re,title))
   nt = tree.new_tag("section")
   nt["epub:type"] = "chapter"
+  tmp = tree.article("div", class_="entry-meta")
+  if tmp:
+    tmp[0].decompose()
   tree.article.div.wrap(nt)
   tree.article.div.unwrap()
   nt = tree.new_tag("body")
@@ -223,12 +236,13 @@ def main(argv=None):
     t = threading.Thread(target=worker)
     t.start()
     threads.append(t)
+  files_list = set()
   for sec in order:
     sec = sec.strip()
     if not config.has_section(sec):
       continue
     # build filename
-    if not (config.has_option(sec, 'chapter-file') or 
+    if not (config.has_option(sec, 'chapter-file') or
       config.has_option(sec, 'chapter-files')
     ):
       print('Skipping section "{}": no "chapter-file"'.format(sec))
@@ -250,8 +264,11 @@ def main(argv=None):
         ch_file = ch_files[i].strip()
         ch_title = None
         filename = join(abspath(args.output), ch_file)
-        if (isfile(filename) and not args.update_all):
+        if ( (isfile(filename) or filename in files_list) and
+          not args.update_all
+        ):
           continue
+        files_list.add(filename)
         if (config.has_option('TITLES', ch_file)):
           ch_title = config.get('TITLES', ch_file)
         q.put((ch_url, filename, ch_title, title_strip, title_regrep))
@@ -279,8 +296,11 @@ def main(argv=None):
         ch_file_filled = ch_file.format(volume=vol, chapter=ch_num)
         ch_filename = join(abspath(args.output), ch_file_filled)
         ch_title = None
-        if (isfile(ch_filename) and not args.update_all):
+        if ( (isfile(ch_filename) or ch_filename in files_list) and
+          not args.update_all
+        ):
           continue
+        files_list.add(ch_filename)
         #~ download_chapter(
           #~ ch_url.format(volume=vol, chapter=ch_num),
           #~ ch_filename

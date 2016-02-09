@@ -15,7 +15,7 @@
 [DEFAULT]
 chapter-url = http://www.wuxiaworld.com/cdindex-html/book-%(volume)s-chapter-{chapter}
 chapter-file = cd-b%(volume)s-c{chapter}.xhtml
-chapter-directory = cd/
+chapter-directory = files/cd/
 start=1
 title_re: '(,| -| \&ndash\;| –) ?||: '
 title_strip = Book [0-9]+,
@@ -25,33 +25,33 @@ order=v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21
 #~ order=test
 title = Coiling Dragon (盘龙) [Pan long]
 author=I Eat Tomatoes （我吃西红柿）
-epub=epubs/CD.epub
+epub=epubs/Coiling-Dragon.epub
 language = en
 id=wuxiaworld-cd
 cover=
 #css=
 #intro=
 synopsis = <strong>Coiling Dragon (盘龙)</strong> <br />
- Panlong, aka Coiling Dragon, is a webnovel by popular Chinese 
- Xianxia (fantasy/kung fu) writer I Eat Tomatoes （我吃西红柿）. This 
- novel is current being translated by RWX. There are a total of 21 books 
- spanning 800+ chapters, so sit back, buckle your seat belts, and get 
+ Panlong, aka Coiling Dragon, is a webnovel by popular Chinese
+ Xianxia (fantasy/kung fu) writer I Eat Tomatoes （我吃西红柿）. This
+ novel is current being translated by RWX. There are a total of 21 books
+ spanning 800+ chapters, so sit back, buckle your seat belts, and get
  ready for one long ride! <br />
   <br />
  <strong>INTRODUCTION:</strong>
- Empires rise and fall on the Yulan Continent. Saints, immortal beings 
- of unimaginable power, battle using spells and swords, leaving swathes 
- of destruction in their wake. Magical beasts rule the mountains, where 
- the brave – or the foolish – go to test their strength. Even the mighty 
- can fall, feasted on by those stronger. The strong live like royalty; 
+ Empires rise and fall on the Yulan Continent. Saints, immortal beings
+ of unimaginable power, battle using spells and swords, leaving swathes
+ of destruction in their wake. Magical beasts rule the mountains, where
+ the brave – or the foolish – go to test their strength. Even the mighty
+ can fall, feasted on by those stronger. The strong live like royalty;
  the weak strive to survive another day. <br />
   <br />
- This is the world which Linley is born into. Raised in the small town 
- of Wushan, Linley is a scion of the Baruch clan, the clan of the 
- once-legendary Dragonblood Warriors. Their fame once shook the world, 
- but the clan is now so decrepit that even the heirlooms of the clan 
- have been sold off. Tasked with reclaiming the lost glory of his clan, 
- Linley will go through countless trials and tribulations, making 
+ This is the world which Linley is born into. Raised in the small town
+ of Wushan, Linley is a scion of the Baruch clan, the clan of the
+ once-legendary Dragonblood Warriors. Their fame once shook the world,
+ but the clan is now so decrepit that even the heirlooms of the clan
+ have been sold off. Tasked with reclaiming the lost glory of his clan,
+ Linley will go through countless trials and tribulations, making
  powerful friends but also deadly enemies. <br />
   <br />
  Come witness a new legend in the making. The legend of Linley Baruch.

@@ -135,7 +135,7 @@ def main(argv=None):
     content=give_css(config)
   )
   ebook.add_item(doc_style)
-  
+
   intro_ch = epub.EpubHtml(title="Introduction", file_name="intro.xhtml")
   intro_ch.add_item(doc_style)
   intro_ch.content = give_intro(config)
@@ -224,7 +224,7 @@ def main(argv=None):
   if exists(epub_filename):
     remove(epub_filename)
   epub.write_epub(epub_filename, ebook, {})
-  
+
 if __name__ == '__main__':
   from sys import exit, hexversion
   if hexversion < 0x03020000:
