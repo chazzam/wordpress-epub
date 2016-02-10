@@ -15,7 +15,7 @@
 [DEFAULT]
 chapter-url = http://www.wuxiaworld.com/cdindex-html/book-%(volume)s-chapter-{chapter}
 chapter-file = cd-b%(volume)s-c{chapter}.xhtml
-chapter-directory = files/cd/
+chapter-directory = files/coiling-dragon/
 start=1
 title_re: '(,| -| \&ndash\;| –) ?||: '
 title_strip = Book [0-9]+,
