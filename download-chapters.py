@@ -216,10 +216,12 @@ def main(argv=None):
   try:
       config.read(args.config)
   except configparser.Error:
+      print("ERROR: Could not parse config file: {0}".format(args.config))
       return 1
-  if not config.has_section('toc'):
-    return 1
-  if not config.has_option('toc', 'order'):
+  if ( (not config.has_section('toc')) or 
+    (not config.has_option('toc', 'order')) 
+  ):
+    print("ERROR: Config file does not have proper table of contents [toc] section")
     return 1
   order = config.get('toc', 'order').split(',')
   if not config.has_section('TITLES'):
