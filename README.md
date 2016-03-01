@@ -22,7 +22,7 @@ Example Shell code for updating all at once
         echo $c;
         (
           cd $wpepub/;
-          python3 download-chapters.py $c;
+          python3 download-chapters.py $c &&
           python3 make-epub.py $c;
         );
         echo;

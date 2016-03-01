@@ -291,8 +291,16 @@ def main(argv=None):
       vol = 1
       if (config.has_option(sec, 'volume')):
         vol = config.get(sec, 'volume')
+      range_skips = set()
+      if (config.has_option(sec, 'skip_download')):
+        tmp_skips = config.get(sec, 'skip_download').strip().split(',')
+        for x in range(0, len(tmp_skips)):
+          tmp_skips[x] = tmp_skips[x].strip()
+        range_skips.update(tmp_skips)
       ch_file = config.get(sec, 'chapter-file').strip()
       for ch_num in ch_range:
+        if (str(ch_num) in range_skips):
+          continue
         ch_file_filled = ch_file.format(volume=vol, chapter=ch_num)
         ch_filename = join(abspath(args.output), ch_file_filled)
         ch_title = None
@@ -316,6 +324,9 @@ def main(argv=None):
     q.put(None)
   for t in threads:
     t.join()
+  if len(files_list) == 0:
+    # Nothing to do, return 200 (OK), for chaining commands together
+    return 200
   return 0
   # parse sections as defined by order
   # within a section
