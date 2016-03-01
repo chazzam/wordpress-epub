@@ -29,3 +29,10 @@ Example Shell code for updating all at once
       done;
     }
     update_all "$HOME/github/wordpress-epub/"
+
+## Notes
+You can jump start from an existing book by extracting the associated epub file
+ 1. Use 'unzip' or a Zip file utility to extract the epub file
+ 2. Note the download folder from the config file: chapter-directory
+ 3. Copy the *.xhtml files from the EPUB folder into the chapter directory
+ 4. Update the config file accordingly, and download-chapters.py will only downloaded the updated files. 
