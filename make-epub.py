@@ -190,21 +190,30 @@ def main(argv=None):
       vol = 1
       if (config.has_option(sec, 'volume')):
         vol = config.get(sec, 'volume')
+      if (config.has_option(sec, 'part')):
+        ch_parts = config.get(sec, 'part').strip().split(',')
+        for x in range(0, len(ch_parts)):
+          ch_parts[x] = ch_parts[x].strip()
+      else:
+        ch_parts = [0]
       x_file = config.get(sec, 'chapter-file')
       for ch_num in ch_range:
-        ch_file = x_file.format(volume=vol, chapter=ch_num)
-        filename = join(abspath(args.input), ch_file)
-        if (not isfile(filename)):
-          continue
-        if filename in included_files:
-          continue
-        ch_title, ch_content = extract_chapter(filename)
-        ch = epub.EpubHtml(title=ch_title.strip(), file_name=ch_file)
-        ch.add_item(doc_style)
-        ch.content = ch_content
-        ebook.add_item(ch)
-        sec_chapters.append(ch)
-        included_files.add(filename)
+        for ch_part in ch_parts:
+          ch_file = x_file.format(
+            volume=vol, chapter=ch_num, part=ch_part
+          )
+          filename = join(abspath(args.input), ch_file)
+          if (not isfile(filename)):
+            continue
+          if filename in included_files:
+            continue
+          ch_title, ch_content = extract_chapter(filename)
+          ch = epub.EpubHtml(title=ch_title.strip(), file_name=ch_file)
+          ch.add_item(doc_style)
+          ch.content = ch_content
+          ebook.add_item(ch)
+          sec_chapters.append(ch)
+          included_files.add(filename)
     if (len(sec_chapters) >= 1):
       if sec_title:
        toc.append((epub.Section(sec_title),sec_chapters))

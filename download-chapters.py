@@ -47,17 +47,21 @@ def download_chapter(
   if not btree:
     return False
   # remove Next/Previous
-  for i in btree("a", string=re.compile("(Next|Prev(ious)?|Index)( ?Chapter)?")):
+  for i in btree("a", string=re.compile(
+    "(Next|Prev(ious)?|Index|TOC|Table of Contents)( ?Chapter)?")
+  ):
     i.decompose()
   #~ for i in btree("a", string="Previous Chapter"):
     #~ i.decompose()
   for i in btree("hr"):
     i.unwrap()
+  for i in btree("script"):
+    i.decompose()
   for i in btree("span", style=re.compile("float: ?right")):
     i.decompose()
   for i in btree("span", style=re.compile("(font-family|color|text-align)")):
     i.unwrap()
-  for i in btree("div", class_=re.compile("wpcnt|sharedaddy")):
+  for i in btree("div", class_=re.compile("wpcnt|sharedaddy|code-block")):
     i.decompose()
   for i in btree("p"):
     if 'style' in i:
@@ -218,8 +222,8 @@ def main(argv=None):
   except configparser.Error:
       print("ERROR: Could not parse config file: {0}".format(args.config))
       return 1
-  if ( (not config.has_section('toc')) or 
-    (not config.has_option('toc', 'order')) 
+  if ( (not config.has_section('toc')) or
+    (not config.has_option('toc', 'order'))
   ):
     print("ERROR: Config file does not have proper table of contents [toc] section")
     return 1
@@ -290,6 +294,7 @@ def main(argv=None):
       sec_end = int(sec_end)
       ch_range = range(sec_start, sec_end + 1)
       ch_url = config.get(sec, 'chapter-url')
+      ch_parts = list()
       vol = 1
       if (config.has_option(sec, 'volume')):
         vol = config.get(sec, 'volume')
@@ -299,27 +304,36 @@ def main(argv=None):
         for x in range(0, len(tmp_skips)):
           tmp_skips[x] = tmp_skips[x].strip()
         range_skips.update(tmp_skips)
+      if (config.has_option(sec, 'part')):
+        ch_parts = config.get(sec, 'part').strip().split(',')
+        for x in range(0, len(ch_parts)):
+          ch_parts[x] = ch_parts[x].strip()
+      else:
+        ch_parts = [0]
       ch_file = config.get(sec, 'chapter-file').strip()
       for ch_num in ch_range:
         if (str(ch_num) in range_skips):
           continue
-        ch_file_filled = ch_file.format(volume=vol, chapter=ch_num)
-        ch_filename = join(abspath(args.output), ch_file_filled)
-        ch_title = None
-        if ( (isfile(ch_filename) or ch_filename in files_list) and
-          not args.update_all
-        ):
-          continue
-        files_list.add(ch_filename)
-        #~ download_chapter(
-          #~ ch_url.format(volume=vol, chapter=ch_num),
-          #~ ch_filename
-        #~ )
-        if (config.has_option('TITLES', ch_file_filled)):
-          ch_title = config.get('TITLES', ch_file_filled)
-        q.put((ch_url.format(volume=vol, chapter=ch_num),
-          ch_filename, ch_title, title_strip, title_regrep)
-        )
+        for ch_part in ch_parts:
+          ch_file_filled = ch_file.format(
+            volume=vol, chapter=ch_num, part=ch_part
+          )
+          ch_filename = join(abspath(args.output), ch_file_filled)
+          ch_title = None
+          if ( (isfile(ch_filename) or ch_filename in files_list) and
+            not args.update_all
+          ):
+            continue
+          files_list.add(ch_filename)
+          #~ download_chapter(
+            #~ ch_url.format(volume=vol, chapter=ch_num),
+            #~ ch_filename
+          #~ )
+          if (config.has_option('TITLES', ch_file_filled)):
+            ch_title = config.get('TITLES', ch_file_filled)
+          q.put((ch_url.format(volume=vol, chapter=ch_num, part=ch_part),
+            ch_filename, ch_title, title_strip, title_regrep)
+          )
   print(q.qsize())
   q.join()
   for i in range(args.workers):
