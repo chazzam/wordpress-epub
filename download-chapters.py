@@ -26,9 +26,8 @@ def download_chapter(
   from lxml import html, etree
   from bs4 import BeautifulSoup, UnicodeDammit
   import requests, re
-  #~ import pdb
+  import pdb
 
-  #~ pdb.set_trace()
   if (url is None or filename is None):
     return False
 
@@ -59,7 +58,9 @@ def download_chapter(
     i.decompose()
   for i in btree("span", style=re.compile("float: ?right")):
     i.decompose()
-  for i in btree("span", style=re.compile("(font-family|color|text-align)")):
+  for i in btree("div", class_=re.compile("(entry-page-title)")):
+    i.unwrap()
+  for i in btree("span", style=re.compile("(font-family|color|text-align|font-weight)")):
     i.unwrap()
   for i in btree("div", class_=re.compile("wpcnt|sharedaddy|code-block")):
     i.decompose()
@@ -68,6 +69,7 @@ def download_chapter(
       del i['style']
   if "Previous Chapter" in btree.p.text:
     btree.p.decompose()
+  #pdb.set_trace()
   # TODO: remove all empty tags
   # Want to rewrite chapter links
   # pull images from glossary page and embed?
@@ -94,6 +96,7 @@ def download_chapter(
         t_div.span.unwrap()
       if t_div.br:
         t_div.br.decompose()
+      #if (tree.article.div.b):
       if (t_div.b):
         st = tree.new_tag("strong")
         temp_string = ""
