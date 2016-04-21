@@ -62,14 +62,14 @@ def download_chapter(
     i.unwrap()
   for i in btree("span", style=re.compile("(font-family|color|text-align|font-weight)")):
     i.unwrap()
-  for i in btree("div", class_=re.compile("wpcnt|sharedaddy|code-block")):
+  for i in btree("div", class_=re.compile("wpcnt|sharedaddy|code-block|post-thumbnail|entry-meta")):
     i.decompose()
   for i in btree("p"):
     if 'style' in i:
       del i['style']
   if "Previous Chapter" in btree.p.text:
     btree.p.decompose()
-  #pdb.set_trace()
+  #~ pdb.set_trace()
   # TODO: remove all empty tags
   # Want to rewrite chapter links
   # pull images from glossary page and embed?
@@ -130,6 +130,8 @@ def download_chapter(
     title = title.strip()
     title = re.sub(re.compile('\n|  |\r|\t|&nbsp;'), ' ', title)
     title = title.replace('  ', ' ')
+    if (len(doc_title) > len(title) and "chapter" not in title.lower()):
+      title = doc_title
     if (title_strip is not None):
       #~ print("strip:'{}' title:'{}'".format(title_strip, title))
       #title = title.replace(title_strip, '').strip()
