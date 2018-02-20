@@ -95,7 +95,7 @@ def give_intro(config):
 def extract_chapter(chapter):
   from lxml import html
   # open the chapter file, return contents as string
-  with open(chapter, 'r') as f:
+  with open(chapter, 'rb') as f:
     read_data = f.read()
   tree = html.fromstring(read_data)
   title = tree.xpath('//title/text()')[0]

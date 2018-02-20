@@ -43,7 +43,7 @@ def download_chapter(
   # Trim down to just the article content
   title = ""
   btree = tree.article
-  if not btree:
+  if not btree or btree is None:
     return False
   # remove Next/Previous
   for i in btree("a", string=re.compile(
@@ -67,7 +67,7 @@ def download_chapter(
   for i in btree("p"):
     if 'style' in i:
       del i['style']
-  if "Previous Chapter" in btree.p.text:
+  if btree.p and "Previous Chapter" in btree.p.text:
     btree.p.decompose()
   #~ pdb.set_trace()
   # TODO: remove all empty tags
@@ -88,8 +88,11 @@ def download_chapter(
       "index" in doc_title.lower()
     ):
       title = doc_title
+    elif (not btree("div", class_="entry-content")):
+        pass
     else:
-      t_div = btree("div", class_="entry-content")[0]
+      t_div_tmp = btree("div", class_="entry-content")
+      t_div = t_div_tmp[0]
       if (t_div.u):
         t_div.u.unwrap()
       if t_div.span:
