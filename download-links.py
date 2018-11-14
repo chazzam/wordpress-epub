@@ -45,10 +45,11 @@ def locate_outfile(args=None, url=None, page=None):
     outfile = parsed.geturl().replace(parsed.scheme, "").replace("://", "")
 
     # estimate the final filename
-    if (
-        (page is not None and "html" in page.headers.get('content-type') and args.adjust_extension)
-        or (page is None and args.adjust_extension)):
-      outfile = os.path.splitext(outfile)[0] + ".html"
+    if (args.adjust_extension
+        and not outfile.lower().endswith(".html")
+        and not outfile.lower().endswith(".htm")
+        and (page is not None and "html" in page.headers.get('content-type')) or (page is None)):
+      outfile += ".html"
     # trim off any requested top level directories
     if args.cut_dirs > 0:
       outfile = os.path.join(*outfile.lstrip("/").split("/")[args.cut_dirs:])
@@ -63,14 +64,14 @@ def download_link(args=None):
   # Download a given chapter
 
   if (args.url is None or args.output is None):
-    return 1
+    return 2
 
   url = args.url.strip()
   # If the first character of the url is /, then it should be relative
   if url[0] == "/":
     url = urllib.parse.urljoin(args.base, url.lstrip("/"))
 
-  if args.skip_clobber_early:
+  if args.no_clobber_early:
     outfile = locate_outfile(args, url)
     if os.path.isfile(outfile):
       print("Skipping existing file {} early".format(outfile))
@@ -84,7 +85,7 @@ def download_link(args=None):
   if page.status_code == 404:
     print("ERROR: Downloading {} from {} failed.".format(
       args.filename, url))
-    return 1
+    return 4
 
   # remove scripts from the download
   # TODO: Need to flag this on and off
@@ -97,9 +98,10 @@ def download_link(args=None):
   # note using page.url to use the final URL (after any redirects)
   outfile = locate_outfile(args, page.url, page)
   # Return true if we won't clobber
-  if args.newer and os.path.isfile(outfile):
+  if args.no_clobber and os.path.isfile(outfile):
     print("Skipping existing file {}".format(outfile))
     return 25
+  # TODO: Add a check on timestamps vs page headers last modified for args.newer
   os.makedirs(os.path.dirname(outfile), exist_ok=True)
 
   with open(outfile, 'w') as f:
@@ -148,9 +150,11 @@ def main(argv=None):
   parser.add_argument('--output', '-O', default="",
     help="specify output file")
   parser.add_argument('--newer', '-N', action='store_true', default=False,
+    help="don't overwrite unless newer (FIXME: currently the same as --no-clobber)")
+  parser.add_argument('--no-clobber', '-nc', action='store_true', default=False,
     help="don't clobber existing files")
-  parser.add_argument('--skip-clobber-early', action='store_true', default=False,
-    help="skip clobbering based on initial URL, rather than actual requested URL, implies --newer")
+  parser.add_argument('--no-clobber-early', '-nce', action='store_true', default=False,
+    help="skip clobbering based on initial URL, rather than actual requested URL, implies --no-clobber")
   parser.add_argument('--base', '-B', default="",
     help="Base URL for relative links")
   parser.add_argument('--prefix', '-P', default="",
@@ -174,9 +178,13 @@ def main(argv=None):
     args.wait_orig = args.wait
     random.seed()
 
-  # skip-clobber-early implies newer
-  if args.skip_clobber_early:
-    args.newer = True
+  # no-clobber-early implies no-clobber
+  if args.no_clobber_early:
+    args.no_clobber = True
+
+  # TODO: make newer actually timestamp based...
+  if args.newer:
+    args.no_clobber = True
 
   scraper = cfscrape.create_scraper()
   args.scraper = scraper
