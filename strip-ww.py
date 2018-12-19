@@ -10,6 +10,7 @@ import lxml.html
 import lxml.etree
 import os
 import os.path
+import re
 
 def strip_file(argv=None):
   parser = argparse.ArgumentParser(description='Download web pages')
@@ -23,6 +24,10 @@ def strip_file(argv=None):
     raw_html = lxml.html.parse(html_file)
 
   epub_title = raw_html.xpath("//html/head/title")[0].text_content()
+  epub_title = re.sub("^\s*[A-Z]+(\s*-\s*)?", "", epub_title)
+  epub_title = re.sub("Chapter [0-9]+(\s*-\s*)?", "", epub_title)
+  epub_title = re.sub("(\s*-\s*)?WuxiaWorld", "", epub_title)
+  
   # skip down to just the body
   tree = lxml.etree.ElementTree(
     raw_html.xpath("//div[contains(@class, 'fr-view')]")[0])
